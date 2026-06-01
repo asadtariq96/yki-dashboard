@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YKI — Exam Sessions Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ECE6D8;
+    --paper-2:#E3DCC9;
+    --card:#F4EFE3;
+    --ink:#1A1814;
+    --ink-2:#56503F;
+    --ink-3:#8A8270;
+    --rule:rgba(26,24,20,.16);
+    --rule-soft:rgba(26,24,20,.08);
+    --blue:#1C2EAE;
+    --blue-ink:#101a6e;
+    --verm:#D8401F;
+    --green:#1E6B3C;
+    --ochre:#B07207;
+    --shadow:rgba(26,24,20,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Hanken Grotesk",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"tnum","ss01";
+    position:relative;
+  }
+  /* paper grain */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:9;opacity:.42;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  ::selection{background:var(--blue);color:var(--paper)}
+
+  .wrap{max-width:1320px;margin:0 auto;padding:0 28px}
+
+  /* ===== Masthead ===== */
+  .topbar{height:6px;background:var(--blue);position:relative;z-index:2}
+  .masthead{padding:34px 0 18px;border-bottom:2px solid var(--ink);position:relative}
+  .kicker{font-size:.72rem;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:12px}
+  .kicker::after{content:"";flex:1;height:1px;background:var(--rule)}
+  .masthead-row{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  h1{
+    font-family:"Fraunces",serif;
+    font-weight:900;
+    font-size:clamp(2.6rem,7vw,5.4rem);
+    line-height:.86;
+    letter-spacing:-.02em;
+    color:var(--ink);
+  }
+  h1 .accent{font-style:italic;font-weight:500;color:var(--verm)}
+  .tagline{font-family:"Fraunces",serif;font-style:italic;font-size:1.05rem;color:var(--ink-2);margin-top:10px;max-width:30ch}
+  .masthead-meta{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:10px;padding-bottom:4px}
+  #dateline{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+  #last-updated{font-size:.72rem;color:var(--ink-3)}
+  .btn-refresh{
+    font-family:"Hanken Grotesk",sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.04em;
+    padding:9px 18px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
+    cursor:pointer;border-radius:0;transition:transform .12s ease,box-shadow .12s ease,background .15s;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-refresh:hover{background:var(--verm);border-color:var(--verm);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+  .btn-refresh:active{transform:translate(0,0);box-shadow:0 0 0 var(--ink)}
+  .btn-refresh:disabled{opacity:.45;cursor:wait}
+  .btn-refresh svg{width:13px;height:13px}
+  .btn-refresh.spinning svg{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ===== Ledger / stats ===== */
+  .ledger{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:2px solid var(--ink)}
+  .fig{padding:20px 22px 18px;border-right:1px solid var(--rule);position:relative}
+  .fig:last-child{border-right:none}
+  .fig-n{display:block;font-family:"Fraunces",serif;font-weight:600;font-size:clamp(2rem,4.2vw,3.1rem);line-height:1;letter-spacing:-.02em}
+  .fig-l{display:block;margin-top:7px;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--ink-2)}
+  .fig.f-open .fig-n{color:var(--green)}
+  .fig.f-spots .fig-n{color:var(--verm)}
+  .fig.f-queue .fig-n{color:var(--ochre)}
+
+  /* ===== Controls ===== */
+  .controls{padding:18px 0 6px;display:flex;flex-wrap:wrap;gap:22px 30px;align-items:flex-start}
+  .fg{display:flex;flex-direction:column;gap:9px}
+  .fg-label{font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{
+    font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.78rem;
+    padding:6px 13px;border:1.5px solid var(--rule);background:transparent;color:var(--ink-2);
+    cursor:pointer;border-radius:100px;transition:all .14s ease;white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--ink);color:var(--ink)}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .chip.active.c-blue{background:var(--blue);border-color:var(--blue)}
+  .chip.active.c-green{background:var(--green);border-color:var(--green)}
+  .chip.active.c-verm{background:var(--verm);border-color:var(--verm)}
+  .chip.active.c-ochre{background:var(--ochre);border-color:var(--ochre)}
+
+  .field{position:relative}
+  select,input[type=text]{
+    font-family:"Hanken Grotesk",sans-serif;font-size:.82rem;font-weight:500;color:var(--ink);
+    background:transparent;border:none;border-bottom:1.5px solid var(--ink);
+    padding:6px 26px 6px 2px;cursor:pointer;border-radius:0;min-width:150px;
+  }
+  select:focus,input[type=text]:focus{outline:none;border-bottom-color:var(--verm)}
+  input[type=text]{cursor:text;min-width:190px}
+  input[type=text]::placeholder{color:var(--ink-3)}
+  .field.sel::after{content:"";position:absolute;right:6px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+  .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:.8rem;font-weight:600;color:var(--ink-2)}
+  .switch .track{width:38px;height:20px;border:1.5px solid var(--ink);border-radius:100px;position:relative;transition:background .16s}
+  .switch .knob{position:absolute;top:1px;left:1px;width:14px;height:14px;background:var(--ink);border-radius:50%;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+  .switch.on{color:var(--ink)}
+  .switch.on .track{background:var(--green)}
+  .switch.on .knob{transform:translateX(18px);background:var(--paper)}
+
+  /* ===== Grid / cards ===== */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(335px,1fr));gap:16px;padding:24px 0 70px}
+  .card{
+    background:var(--card);border:1.5px solid var(--ink);border-radius:0;padding:18px 18px 16px;
+    position:relative;cursor:default;transition:transform .16s ease,box-shadow .16s ease;
+    animation:rise .5s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .card:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 var(--ink)}
+  .card.closed{opacity:.5;background:var(--paper-2)}
+  .card.closed:hover{transform:none;box-shadow:none}
+
+  .card-head{display:flex;gap:14px;align-items:flex-start}
+  .datebox{flex-shrink:0;width:62px;text-align:center;border-right:1.5px solid var(--rule);padding-right:12px}
+  .datebox .d-day{font-family:"Fraunces",serif;font-weight:700;font-size:2.3rem;line-height:.9;letter-spacing:-.03em}
+  .datebox .d-mon{font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--verm);margin-top:3px}
+  .datebox .d-wk{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+  .card-id{flex:1;min-width:0}
+  .venue{font-family:"Fraunces",serif;font-weight:600;font-size:1.12rem;line-height:1.12;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .city{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-top:4px;font-weight:600}
+  .status-dot{position:absolute;top:16px;right:16px;width:9px;height:9px;border-radius:50%}
+  .status-dot.open{background:var(--green);box-shadow:0 0 0 3px rgba(30,107,60,.18)}
+  .status-dot.queue{background:var(--ochre);box-shadow:0 0 0 3px rgba(176,114,7,.18)}
+  .status-dot.closed{background:var(--ink-3)}
+
+  .tags{display:flex;gap:6px;margin:12px 0 13px;flex-wrap:wrap}
+  .tag{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--rule)}
+  .tag.lvl-PERUS{color:var(--blue);border-color:rgba(28,46,174,.4)}
+  .tag.lvl-KESKI{color:var(--green);border-color:rgba(30,107,60,.4)}
+  .tag.lvl-YLIN{color:var(--verm);border-color:rgba(216,64,31,.4)}
+  .tag.t-lang{color:var(--ink-2)}
+  .tag.t-queue{background:var(--ochre);color:var(--paper);border-color:var(--ochre)}
+
+  .rule{height:1px;background:var(--rule);margin:0 0 12px}
+  .spots-line{display:flex;justify-content:space-between;align-items:baseline;font-size:.76rem;margin-bottom:6px}
+  .spots-line .lbl{color:var(--ink-2);font-weight:500}
+  .spots-line .free{font-weight:800;font-size:.92rem}
+  .free.plenty{color:var(--green)}
+  .free.few{color:var(--ochre)}
+  .free.none{color:var(--verm)}
+  .progress{height:6px;background:var(--paper-2);border:1px solid var(--rule);position:relative;overflow:hidden}
+  .progress-fill{height:100%;transition:width .6s cubic-bezier(.22,1,.36,1)}
+  .progress-fill.plenty{background:var(--green)}
+  .progress-fill.few{background:var(--ochre)}
+  .progress-fill.none{background:var(--verm)}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.7rem;color:var(--ink-3);letter-spacing:.03em}
+  .meta-row .reg{font-weight:600;color:var(--ink-2)}
+  .meta-row .fee{font-family:"Fraunces",serif;font-weight:600;font-size:1rem;color:var(--ink)}
+
+  .empty{grid-column:1/-1;text-align:center;padding:80px 20px;border:1.5px dashed var(--rule)}
+  .empty h3{font-family:"Fraunces",serif;font-style:italic;font-weight:500;font-size:1.5rem;color:var(--ink-2)}
+  .empty p{margin-top:8px;font-size:.85rem;color:var(--ink-3)}
+
+  /* ===== Overlay ===== */
+  #overlay{position:fixed;inset:0;background:var(--paper);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+  #overlay.hidden{display:none}
+  .loader{font-family:"Fraunces",serif;font-style:italic;font-size:1.4rem;color:var(--ink-2);position:relative}
+  .loader::after{content:"";display:inline-block;width:1ch;animation:dots 1.4s steps(4,end) infinite}
+  @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+  .load-bar{width:200px;height:3px;background:var(--paper-2);overflow:hidden;border:1px solid var(--rule)}
+  .load-bar i{display:block;height:100%;width:40%;background:var(--blue);animation:slide 1.1s ease-in-out infinite}
+  @keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+
+  .error-box{background:var(--card);border:2px solid var(--verm);padding:28px;max-width:600px;width:92%;box-shadow:8px 8px 0 var(--ink)}
+  .error-box h3{font-family:"Fraunces",serif;font-weight:700;font-size:1.3rem;color:var(--verm);margin-bottom:8px}
+  .error-box p{font-size:.85rem;color:var(--ink-2);margin-bottom:16px;line-height:1.55}
+  .error-box pre{background:var(--paper);border:1px solid var(--ink);padding:12px;font-size:.72rem;color:var(--ink);overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:8px;cursor:pointer;font-family:ui-monospace,monospace;transition:background .12s}
+  .error-box pre:hover{background:var(--paper-2)}
+  .copy-hint{font-size:.7rem;color:var(--ink-3);margin-bottom:16px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+  .paste-area{width:100%;min-height:90px;background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);font-size:.78rem;padding:10px;font-family:ui-monospace,monospace;resize:vertical}
+  .paste-area:focus{outline:none;border-color:var(--verm)}
+  .btn-load{margin-top:12px;padding:11px;border:none;background:var(--ink);color:var(--paper);font-family:"Hanken Grotesk";font-size:.84rem;font-weight:700;letter-spacing:.04em;cursor:pointer;width:100%;transition:background .14s}
+  .btn-load:hover{background:var(--verm)}
+
+  @media(max-width:680px){
+    .ledger{grid-template-columns:repeat(2,1fr)}
+    .fig:nth-child(2){border-right:none}
+    .fig:nth-child(1),.fig:nth-child(2){border-bottom:1px solid var(--rule)}
+    .masthead-meta{text-align:left;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+
+<!-- Overlay -->
+<div id="overlay">
+  <div id="spinner-view" style="display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div class="loader">Gathering exam sessions</div>
+    <div class="load-bar"><i></i></div>
+  </div>
+  <div id="error-view" style="display:none">
+    <div class="error-box">
+      <h3>Direct fetch blocked</h3>
+      <p>The browser can&rsquo;t reach the YKI API directly (CORS). Run this in your terminal, then paste the JSON below — or start <code>yki_proxy.py</code> and reload.</p>
+      <pre id="curl-cmd" onclick="copyCmd()" title="Click to copy">curl "https://yki.opintopolku.fi/yki/api/exam-session" --compressed -H "Accept: application/json" -H "Caller-Id: 1.2.246.562.10.00000000001.yki" -H "CSRF: 6acb9d83-08c6-4b9c-a38f-b227b3a2680a" -H "Cookie: CSRF=6acb9d83-08c6-4b9c-a38f-b227b3a2680a"</pre>
+      <div class="copy-hint" id="copy-hint">Click command to copy</div>
+      <textarea class="paste-area" id="paste-json" placeholder="Paste JSON response here…"></textarea>
+      <button class="btn-load" onclick="loadPasted()">Load data</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">Yleinen kielitutkinto &middot; National Certificate</div>
+    <div class="masthead-row">
+      <div>
+        <h1>YKI <span class="accent">sessions</span></h1>
+      </div>
+      <div class="masthead-meta">
+        <span id="dateline"></span>
+        <span id="last-updated"></span>
+        <button class="btn-refresh" id="btn-refresh" onclick="fetchData()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="ledger">
+    <div class="fig"><span class="fig-n" id="stat-shown">0</span><span class="fig-l">Sessions shown</span></div>
+    <div class="fig f-open"><span class="fig-n" id="stat-open">0</span><span class="fig-l">Open now</span></div>
+    <div class="fig f-spots"><span class="fig-n" id="stat-spots">0</span><span class="fig-l">Free spots</span></div>
+    <div class="fig f-queue"><span class="fig-n" id="stat-queue">0</span><span class="fig-l">Queue only</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="fg"><div class="fg-label">Level</div><div class="chips" id="level-btns"></div></div>
+    <div class="fg"><div class="fg-label">Language</div><div class="chips" id="lang-btns"></div></div>
+    <div class="fg"><div class="fg-label">Date</div><div class="chips" id="date-btns"></div></div>
+    <div class="fg"><div class="fg-label">City</div><div class="field sel"><select id="city-select" onchange="render()"><option value="">All cities</option></select></div></div>
+    <div class="fg"><div class="fg-label">Search</div><div class="field"><input type="text" id="search" placeholder="Venue or city…" oninput="render()"></div></div>
+    <div class="fg"><div class="fg-label">Show</div>
+      <div class="chips">
+        <label class="switch on" id="sw-open" onclick="toggleSwitch('openOnly','sw-open')"><span class="track"><span class="knob"></span></span>Open only</label>
+        <label class="switch" id="sw-spots" onclick="toggleSwitch('spotsOnly','sw-spots')"><span class="track"><span class="knob"></span></span>Has spots</label>
+      </div>
+    </div>
+    <div class="fg"><div class="fg-label">Sort</div><div class="field sel"><select id="sort-select" onchange="render()">
+      <option value="date">By date</option>
+      <option value="spots">Most spots</option>
+      <option value="spots-asc">Fewest spots</option>
+      <option value="pct">Least full</option>
+    </select></div></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const API_URL = '/api/exam-session';
+const LANG_NAMES = {fin:'Finnish', swe:'Swedish', eng:'English', deu:'German', spa:'Spanish', fra:'French', rus:'Russian'};
+const LEVEL_LABELS = {PERUS:'Basic', KESKI:'Intermediate', YLIN:'Advanced'};
+
+const state = { level:new Set(), lang:new Set(), date:new Set(), openOnly:true, spotsOnly:false };
+const ALL = { level:[], lang:[], date:[] };
+let RAW = [];
+
+document.getElementById('dateline').textContent =
+  new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+async function fetchData(){
+  showOverlay('spinner');
+  const btn = document.getElementById('btn-refresh');
+  btn.disabled = true; btn.classList.add('spinning');
+  try{
+    const res = await fetch(API_URL);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    loadData(data.exam_sessions || data);
+  }catch(e){
+    showOverlay('error');
+  }finally{
+    btn.disabled = false; btn.classList.remove('spinning');
+  }
+}
+
+const ALLOWED_LANGS = new Set(['fin','swe']);
+
+function loadData(sessions){
+  RAW = sessions.filter(s => ALLOWED_LANGS.has(s.language_code));
+  buildFilters();
+  hideOverlay();
+  document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  render(true);
+}
+
+function loadPasted(){
+  const txt = document.getElementById('paste-json').value.trim();
+  if(!txt) return;
+  try{
+    const parsed = JSON.parse(txt);
+    const sessions = parsed.exam_sessions || parsed;
+    if(!Array.isArray(sessions)) throw new Error('Expected an array');
+    loadData(sessions);
+  }catch(e){ alert('Invalid JSON: ' + e.message); }
+}
+
+function copyCmd(){
+  navigator.clipboard.writeText(document.getElementById('curl-cmd').textContent).then(()=>{
+    const h = document.getElementById('copy-hint');
+    h.textContent = 'Copied to clipboard';
+    setTimeout(()=>{ h.textContent = 'Click command to copy'; }, 2000);
+  });
+}
+
+function showOverlay(view){
+  document.getElementById('overlay').classList.remove('hidden');
+  document.getElementById('spinner-view').style.display = view==='spinner' ? 'flex' : 'none';
+  document.getElementById('error-view').style.display = view==='error' ? 'flex' : 'none';
+}
+function hideOverlay(){ document.getElementById('overlay').classList.add('hidden'); }
+
+function buildFilters(){
+  const levels = [...new Set(RAW.map(s=>s.level_code))].sort();
+  const langs  = [...new Set(RAW.map(s=>s.language_code))].sort();
+  const dates  = [...new Set(RAW.map(s=>s.session_date))].sort();
+  const cityRaw = new Set();
+  RAW.forEach(s => s.location.forEach(l => { if(l.lang==='fi') cityRaw.add(l.post_office.trim().toUpperCase()); }));
+  const cities = [...cityRaw].sort();
+
+  state.level = new Set(levels);
+  state.lang  = new Set(langs);
+  state.date  = new Set(dates);
+
+  buildChips('level-btns', levels, 'level', 'c-blue', l => LEVEL_LABELS[l] || l);
+  buildChips('lang-btns',  langs,  'lang',  'c-green', l => LANG_NAMES[l] || l);
+  buildChips('date-btns',  dates,  'date',  'c-ochre', d => new Date(d+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+
+  const sel = document.getElementById('city-select');
+  sel.innerHTML = '<option value="">All cities</option>';
+  cities.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+
+  ALL.level = levels; ALL.lang = langs; ALL.date = dates;
+  applyParams();
+}
+
+/* ---- shareable URL state ---- */
+function applyParams(){
+  const p = new URLSearchParams(location.search);
+  applyChipParam('level', p.get('level'), 'level-btns');
+  applyChipParam('lang',  p.get('lang'),  'lang-btns');
+  applyChipParam('date',  p.get('date'),  'date-btns');
+  if(p.has('city')) document.getElementById('city-select').value = p.get('city');
+  if(p.has('q'))    document.getElementById('search').value = p.get('q');
+  if(p.has('sort')) document.getElementById('sort-select').value = p.get('sort');
+  state.openOnly  = p.get('open') !== '0';   // default true
+  state.spotsOnly = p.get('spots') === '1';  // default false
+  document.getElementById('sw-open').classList.toggle('on', state.openOnly);
+  document.getElementById('sw-spots').classList.toggle('on', state.spotsOnly);
+}
+
+function applyChipParam(key, val, containerId){
+  if(val === null) return; // absent → keep all selected
+  const wanted = new Set(val.split(',').filter(Boolean));
+  const chips = document.querySelectorAll('#'+containerId+' .chip');
+  state[key] = new Set();
+  chips.forEach(btn => {
+    const on = wanted.has(btn.dataset.val);
+    btn.classList.toggle('active', on);
+    if(on) state[key].add(btn.dataset.val);
+  });
+  if(state[key].size === 0) // nothing matched → fall back to all
+    chips.forEach(btn => { btn.classList.add('active'); state[key].add(btn.dataset.val); });
+}
+
+function updateURL(){
+  const p = new URLSearchParams();
+  if(state.level.size < ALL.level.length) p.set('level', [...state.level].join(','));
+  if(state.lang.size  < ALL.lang.length)  p.set('lang',  [...state.lang].join(','));
+  if(state.date.size  < ALL.date.length)  p.set('date',  [...state.date].join(','));
+  const city = document.getElementById('city-select').value;
+  const q    = document.getElementById('search').value.trim();
+  const sort = document.getElementById('sort-select').value;
+  if(city) p.set('city', city);
+  if(q)    p.set('q', q);
+  if(sort && sort !== 'date') p.set('sort', sort);
+  if(!state.openOnly) p.set('open', '0');
+  if(state.spotsOnly) p.set('spots', '1');
+  const qs = p.toString();
+  history.replaceState(null, '', qs ? '?'+qs : location.pathname);
+}
+
+function buildChips(containerId, values, key, color, labelFn){
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  values.forEach(val => {
+    const b = document.createElement('button');
+    b.className = 'chip active ' + color;
+    b.dataset.val = val;
+    b.textContent = labelFn(val);
+    b.onclick = () => toggleFilter(b, key);
+    c.appendChild(b);
+  });
+}
+
+function toggleFilter(btn, type){
+  const val = btn.dataset.val;
+  if(state[type].has(val)){
+    if(state[type].size === 1) return;
+    state[type].delete(val); btn.classList.remove('active');
+  }else{
+    state[type].add(val); btn.classList.add('active');
+  }
+  render();
+}
+
+function toggleSwitch(key, id){
+  state[key] = !state[key];
+  document.getElementById(id).classList.toggle('on', state[key]);
+  render();
+}
+
+function getVenue(s){
+  const loc = s.location.find(l=>l.lang==='fi') || s.location[0];
+  return { name: loc ? loc.name : '', city: loc ? loc.post_office.trim().toUpperCase() : '' };
+}
+const getSpots = s => Math.max(0, s.max_participants - s.participants);
+const getFillPct = s => s.max_participants > 0 ? s.participants / s.max_participants : 1;
+const fmtDay = d => new Date(d+'T12:00:00Z').getUTCDate();
+const fmtMon = d => new Date(d+'T12:00:00Z').toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'}).toUpperCase();
+const fmtWk  = d => new Date(d+'T12:00:00Z').toLocaleDateString('en-GB',{weekday:'short',timeZone:'UTC'});
+const fmtReg = d => { const [y,m,day] = d.split('-'); return day+'.'+m; };
+
+function filterSessions(){
+  const search = document.getElementById('search').value.toLowerCase();
+  const city = document.getElementById('city-select').value;
+  return RAW.filter(s => {
+    if(!state.level.has(s.level_code)) return false;
+    if(!state.lang.has(s.language_code)) return false;
+    if(!state.date.has(s.session_date)) return false;
+    if(state.openOnly && !s.open) return false;
+    if(state.spotsOnly && getSpots(s) <= 0) return false;
+    const v = getVenue(s);
+    if(city && v.city !== city) return false;
+    if(search && !v.name.toLowerCase().includes(search) && !v.city.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function sortSessions(sessions){
+  const sort = document.getElementById('sort-select').value;
+  return [...sessions].sort((a,b)=>{
+    if(sort==='date') return a.session_date.localeCompare(b.session_date);
+    if(sort==='spots') return getSpots(b) - getSpots(a);
+    if(sort==='spots-asc') return getSpots(a) - getSpots(b);
+    if(sort==='pct') return getFillPct(a) - getFillPct(b);
+    return 0;
+  });
+}
+
+function cardHTML(s, i){
+  const v = getVenue(s);
+  const spots = getSpots(s);
+  const fillW = Math.round(getFillPct(s) * 100);
+  const cls = spots > 10 ? 'plenty' : spots > 0 ? 'few' : 'none';
+  const isQueue = s.available_registration_kind === 'QUEUE';
+  const status = !s.open ? 'closed' : isQueue ? 'queue' : 'open';
+  const delay = Math.min(i*28, 560);
+  const queueTag = isQueue ? '<span class="tag t-queue">Queue</span>' : '';
+  const qExtra = s.queue > 0 ? ' &middot; ' + s.queue + ' waiting' : '';
+  return '<article class="card'+(!s.open?' closed':'')+'" style="animation-delay:'+delay+'ms">'
+    + '<span class="status-dot '+status+'"></span>'
+    + '<div class="card-head">'
+    +   '<div class="datebox"><div class="d-day">'+fmtDay(s.session_date)+'</div><div class="d-mon">'+fmtMon(s.session_date)+'</div><div class="d-wk">'+fmtWk(s.session_date)+'</div></div>'
+    +   '<div class="card-id"><div class="venue" title="'+v.name+'">'+v.name+'</div><div class="city">'+v.city+'</div></div>'
+    + '</div>'
+    + '<div class="tags">'
+    +   '<span class="tag lvl-'+s.level_code+'">'+(LEVEL_LABELS[s.level_code]||s.level_code)+'</span>'
+    +   '<span class="tag t-lang">'+(LANG_NAMES[s.language_code]||s.language_code)+'</span>'
+    +   queueTag
+    + '</div>'
+    + '<div class="rule"></div>'
+    + '<div class="spots-line"><span class="lbl">'+s.participants+' / '+s.max_participants+' seats taken'+qExtra+'</span><span class="free '+cls+'">'+spots+' free</span></div>'
+    + '<div class="progress"><div class="progress-fill '+cls+'" style="width:'+fillW+'%"></div></div>'
+    + '<div class="meta-row"><span class="reg">Reg '+fmtReg(s.registration_start_date)+' &rarr; '+fmtReg(s.registration_end_date)+'</span><span class="fee">&euro;'+s.exam_fee+'</span></div>'
+    + '</article>';
+}
+
+let countTimers = [];
+function animateCount(el, target){
+  const start = parseInt(el.textContent.replace(/\D/g,'')) || 0;
+  const dur = 650, t0 = performance.now();
+  function step(now){
+    const p = Math.min((now-t0)/dur, 1);
+    const eased = 1 - Math.pow(1-p, 3);
+    el.textContent = Math.round(start + (target-start)*eased).toLocaleString();
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function render(animate){
+  if(RAW.length === 0) return;
+  updateURL();
+  const filtered = filterSessions();
+  const sorted = sortSessions(filtered);
+  const stats = {
+    shown: sorted.length,
+    open: filtered.filter(s=>s.open).length,
+    spots: filtered.reduce((a,s)=>a+getSpots(s),0),
+    queue: filtered.filter(s=>s.available_registration_kind==='QUEUE').length,
+  };
+  const map = {'stat-shown':stats.shown,'stat-open':stats.open,'stat-spots':stats.spots,'stat-queue':stats.queue};
+  for(const id in map){
+    const el = document.getElementById(id);
+    if(animate) animateCount(el, map[id]); else el.textContent = map[id].toLocaleString();
+  }
+
+  const grid = document.getElementById('grid');
+  if(sorted.length === 0){
+    grid.innerHTML = '<div class="empty"><h3>Nothing matches those filters</h3><p>Loosen a chip or two and the board will fill back up.</p></div>';
+    return;
+  }
+  grid.innerHTML = sorted.map(cardHTML).join('');
+}
+
+fetchData();
+</script>
+</body>
+</html>
