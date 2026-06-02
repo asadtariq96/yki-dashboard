@@ -125,7 +125,7 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(335px,1fr));gap:16px;padding:24px 0 70px}
   .card{
     background:var(--card);border:1.5px solid var(--ink);border-radius:0;padding:18px 18px 16px;
-    position:relative;cursor:default;transition:transform .16s ease,box-shadow .16s ease;
+    position:relative;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;text-decoration:none;color:inherit;display:block;
     animation:rise .5s cubic-bezier(.22,1,.36,1) both;
   }
   @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -485,7 +485,7 @@ function cardHTML(s, i){
   const delay = Math.min(i*28, 560);
   const queueTag = isQueue ? '<span class="tag t-queue">Queue</span>' : '';
   const qExtra = s.queue > 0 ? ' &middot; ' + s.queue + ' waiting' : '';
-  return '<article class="card'+(!s.open?' closed':'')+'" style="animation-delay:'+delay+'ms">'
+  return '<a class="card'+(!s.open?' closed':'')+'" href="https://yki.opintopolku.fi/yki/tutkintotilaisuus/'+s.id+'" target="_blank" rel="noopener" style="animation-delay:'+delay+'ms">'
     + '<span class="status-dot '+status+'"></span>'
     + '<div class="card-head">'
     +   '<div class="datebox"><div class="d-day">'+fmtDay(s.session_date)+'</div><div class="d-mon">'+fmtMon(s.session_date)+'</div><div class="d-wk">'+fmtWk(s.session_date)+'</div></div>'
@@ -500,7 +500,7 @@ function cardHTML(s, i){
     + '<div class="spots-line"><span class="lbl">'+s.participants+' / '+s.max_participants+' seats taken'+qExtra+'</span><span class="free '+cls+'">'+spots+' free</span></div>'
     + '<div class="progress"><div class="progress-fill '+cls+'" style="width:'+fillW+'%"></div></div>'
     + '<div class="meta-row"><span class="reg">Reg '+fmtReg(s.registration_start_date)+' &rarr; '+fmtReg(s.registration_end_date)+'</span><span class="fee">&euro;'+s.exam_fee+'</span></div>'
-    + '</article>';
+    + '</a>';
 }
 
 let countTimers = [];
