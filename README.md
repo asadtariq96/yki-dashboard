@@ -24,6 +24,20 @@ Live: <https://yki.asad.dev>
   `?level=KESKI&lang=swe&open=0`.
 - Animated stat counters, staggered card reveals, paper-grain styling.
 
+## Endpoints
+
+The proxy serves two things and nothing else.
+
+| Path | Serves |
+| --- | --- |
+| `GET /` | `yki_dashboard.html`, unchanged |
+| `GET /api/exam-session` | passthrough of `https://yki.opintopolku.fi/yki/api/exam-session` |
+
+The upstream call needs a `Caller-Id` header and a matching `CSRF` header and cookie, none of which
+a browser can set cross-origin, which is the real reason this proxy exists. The values in
+`yki_proxy.py` are the ones the public registration page sends; they identify the caller, they do
+not grant anything.
+
 ## Run locally
 
 ```bash
